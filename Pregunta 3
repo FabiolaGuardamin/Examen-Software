@@ -1,1 +1,61 @@
+class Cuenta:
+    def __init__(self, Number: str, Name: str, Balance: int, Contacts: list):
+        self.Number = Number
+        self.Name = Name
+        self.Balance = int(Balance)
+        self.Contacts = Contacts
+        self.History = []
+        self.daily_limit = 200  # Nuevo atributo para el límite diario
+        self.daily_transfered = 0  # Nuevo atributo para realizar un seguimiento del monto transferido en el día
+
+    def update_daily_limit(self):
+        # Método para actualizar el límite diario según la lógica que decidas implementar
+        # Puede reiniciar el límite diario cada día o mantener un seguimiento en un período específico
+
+    def Pay(self, DestinationNumber: str, Amount: int):
+        Amount = int(Amount)
+        # Verificar si el límite diario ha sido alcanzado antes de realizar la transferencia
+        if self.daily_transfered + Amount > self.daily_limit:
+            return False  # No se puede realizar la transferencia, se excede el límite diario
+        if self.Balance >= Amount:
+            self.Balance -= Amount
+            self.History.append({
+                'type': 'payment_made',
+                'amount': Amount,
+                'destination': DestinationNumber
+            })
+            for account in BD:
+                if account.Number == DestinationNumber:
+                    account.Balance += Amount
+                    account.History.append({
+                        'type': 'payment_received',
+                        'amount': Amount,
+                        'origin': self.Number
+                    })
+                    self.daily_transfered += Amount  # Actualizar el monto transferido en el día
+                    self.update_daily_limit()  # Actualizar el límite diario si es necesario
+            return True
+            
+        else:
+            return False
+
+# Pruebas unitarias adicionales
+
+def test_pay_daily_limit_exceeded(self):
+    """
+    Caso de prueba de error por exceder el límite diario al realizar un pago.
+    """
+    self.test_account_1.daily_limit = 50  # Establecer un límite diario bajo para las pruebas
+    response = self.app.get('/wallet/pay?my_number=123&destination_number=456&amount=60')
+    self.assertEqual(response.status_code, 400)
+    self.assertIn("Daily limit exceeded", response.data.decode('utf-8'))
+
+def test_update_daily_limit(self):
+    """
+    Caso de prueba para verificar la actualización del límite diario.
+    """
+    self.test_account_1.daily_limit = 100
+    self.test_account_1.daily_transfered = 80
+    self.test_account_1.update_daily_limit()
+    self.assertEqual(self.test_account_1.daily_limit, 20)  # El límite diario restante debería ser 20
 
