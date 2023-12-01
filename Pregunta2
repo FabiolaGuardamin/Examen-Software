@@ -1,1 +1,68 @@
+import unittest
 
+# Importa tu aplicación Flask y la clase Cuenta
+from tu_script import app, Cuenta
+
+class TestBilleteraElectronica(unittest.TestCase):
+
+    def setUp(self):
+        # Configura datos de prueba
+        self.test_account_1 = Cuenta("123", "Usuario1", 100, [])
+        self.test_account_2 = Cuenta("456", "Usuario2", 50, [])
+        app.testing = True
+        self.app = app.test_client()
+
+    def test_get_contacts_success(self):
+        """
+        Caso de prueba de éxito para obtener contactos.
+        """
+        response = self.app.get('/wallet/contacts?my_number=123')
+        data = response.get_json()
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("456", data)  # Verifica que el contacto 456 está en la respuesta
+
+    def test_pay_success(self):
+        """
+        Caso de prueba de éxito para realizar un pago.
+        """
+        response = self.app.get('/wallet/pay?my_number=123&destination_number=456&amount=20')
+        data = response.get_json()
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(data["message"], "Payment successful")
+
+    def test_get_history_success(self):
+        """
+        Caso de prueba de éxito para obtener historial.
+        """
+        response = self.app.get('/wallet/history?my_number=123')
+        data = response.get_json()
+        self.assertEqual(response.status_code, 200)
+        self.assertIsInstance(data, list)  # Verifica que la respuesta es una lista
+
+    def test_pay_insufficient_funds(self):
+        """
+        Caso de prueba de error por fondos insuficientes al realizar un pago.
+        """
+        response = self.app.get('/wallet/pay?my_number=123&destination_number=456&amount=200')
+        self.assertEqual(response.status_code, 400)
+        self.assertIn("Insufficient funds", response.data.decode('utf-8'))
+
+    def test_pay_account_not_found(self):
+        """
+        Caso de prueba de error por cuenta no encontrada al realizar un pago.
+        """
+        response = self.app.get('/wallet/pay?my_number=789&destination_number=456&amount=20')
+        self.assertEqual(response.status_code, 404)
+        self.assertIn("Account not found", response.data.decode('utf-8'))
+
+    def test_get_history_account_not_found(self):
+        """
+        Caso de prueba de error por cuenta no encontrada al obtener historial.
+        """
+        response = self.app.get('/wallet/history?my_number=789')
+        self.assertEqual(response.status_code, 404)
+        self.assertIn("Account not found", response.data.decode('utf-8'))
+
+if __name__ == '__main__':
+    unittest.main()
+    
